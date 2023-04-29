@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MotionCapture Printing Page</title>
+    <!--Import JS File to use PoseNet-->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2.2.2/dist/posenet.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@3.11.0/dist/tf-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter@3.11.0/dist/tf-converter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl@3.11.0/dist/tf-backend-webgl.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@0.0.6/dist/pose-detection.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <style>
+        /* 이미지에 캔버스를 겹쳐서 그리기 위함 */
+        canvas {
+            background-color:gray;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+</head>
+<body>
+    <button id="play">Play</button>
+    <!--    <video id="video" width="640" height="480" autoplay muted playsinline></video>-->
+    <canvas id="canvas"width="640" height="480"></canvas>
+    <!--     <script src="./src/print.js"></script>-->
+    <script src="./src/print.js"></script>
+    <script>
+        $(document).ready(function(){
+            motion_play();
+        });
+        function motion_play(){
+            $('#play').click(function(){
+                let projectID = "test214037";
+                $.ajax({
+                    url: 'https://projectoao.iptime.org:8200/motion_read',
+                    type: 'POST',
+                    dataType: "json",
+                    cache: false,
+                    data: {
+                        projectID:projectID
+                    },
+                    success:function(data) {
+                        console.log("success");
+                        console.log(data.poseData);
+                        let jsonData = slice_input(data.poseData);
+                        animation_Control(jsonData);
+                    },
+                    error: function(data, errorThrown){
+                        console.log("err");
+                        console.log(data);
+                        console.log(errorThrown);
+                    }
+                });
+            });
+        }
+        function slice_input(data){
+            let splitData = data.split(';'); // 문자열 슬라이스
+            let arrayLength = splitData.length; // 슬라이스된 데이터의 길이 파악
+            //console.log(splitData);
+            //console.log(arrayLength);
+
+            // 처음에 undefined 라고 나오기 때문에 이를 수정해주는 작업
+            let firstData = splitData[0];
+            splitData.shift();
+            let revisedData = firstData.replace("undefined","");
+            //console.log(revisedData);
+            splitData.unshift(revisedData);
+            //console.log(splitData);
+
+            // 들어온 문자열 json 객체로 변경
+            let jsonData = [];
+            for (let i = 0; i< (arrayLength-1); i++){
+                jsonData[i] = JSON.parse(splitData[i]);
+                //console.log(jsonData[i]);
+            }
+            return jsonData;
+        }
+    </script>
+</body>
+</html>

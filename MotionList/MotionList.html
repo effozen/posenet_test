@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ListUp Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <table id="poseAll" class="table"></table>
+<script>
+    $(document).ready(function() {
+        poseAll();
+    });
+    function poseAll() {
+        $.ajax({
+            url: "https://projectoao.iptime.org:8200/motion_list",
+            type: "POST",
+//                    data: {
+            //                      "url":      _url,
+            //                    "userID":   _userID,
+            //                },
+            dataType: 'json',
+            success: function(data) {
+                var str = ''
+
+                str += '<table class="table table-hover">'
+                str += '<thead>'
+                str += '<tr>'
+                str += '<th scope="col">POSE ID</th>'
+                //str += '<th scope="col">WIDTH</th>'
+                //str += '<th scope="col">HEIGHT</th>'
+                str += '<th scope="col">DELETE</th>'
+                str += '</tr>'
+                str += '</thead>'
+
+                for (var key in data) {
+                    console.log(data[key].poseID)
+                    str += '<tr>'
+                    str += '<td>' + data[key].projectID + '</td>'
+                    //str += '<td>' + data[key].width  + '</td>'
+                    //str += '<td>' + data[key].height  + '</td>'
+//                            str += '<td><button style="padding: 1px 4px;" onclick="poseDel(' + data[key].name + ')">Play</button></td>'
+                    str += '<td><button style="padding: 1px 4px;" onclick="poseDel(\'' + data[key].poseID + '\')">Delete</button></td>'
+                    str += '</tr>'
+                }
+
+                $("#poseAll").html(str)
+            },
+            error: function(err) {
+                alert("Network Error...\nTry again, please...");
+            }
+        });
+    }
+    function onPose() {
+        window.location.href = "./poseAdd.html";
+    }
+    function poseDel(_poseID) {
+        if (confirm("Delete?")) {
+            $.ajax({
+                url: "https://projectoao.iptime.org:8200/list_poseDel",
+                type: "POST",
+                data: {
+                    "poseID": _poseID,
+                },
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data)
+                    if (data == "OK") {
+                        poseAll()
+                    }
+                },
+                error: function(err) {
+                    alert("Network Error...\nTry again, please...");
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>
